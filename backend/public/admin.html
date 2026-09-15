@@ -141,7 +141,9 @@
 
     <script>
 
-        const API_BASE = 'https://greenden-tailwind.onrender.com';
+        // Use relative API path so requests go to whichever host is serving
+        // the admin page (localhost:4000 locally or Render in production).
+        const API_BASE = '';
 
 
         // Escape HTML to prevent database content

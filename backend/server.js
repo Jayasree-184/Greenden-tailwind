@@ -1,4 +1,6 @@
-require('dotenv').config()
+const path = require('path')
+const crypto = require('crypto')
+require('dotenv').config({ path: path.join(__dirname, '.env') })
 
 const express = require('express')
 const cors = require('cors')
@@ -21,8 +23,103 @@ app.use(cors())
 // Parses JSON request bodies.
 app.use(express.json())
 
-// Serves files from backend/public
-app.use(express.static('public'))
+// ---------------------------------------------------------------------
+// Authentication Middleware (HTTP Basic Auth)
+// ---------------------------------------------------------------------
+
+/**
+ * Constant-time comparison using sha256 to prevent timing attacks
+ * and avoid leaking string lengths.
+ */
+function safeCompare(a, b) {
+    const hashA = crypto.createHash('sha256').update(String(a)).digest()
+    const hashB = crypto.createHash('sha256').update(String(b)).digest()
+    return crypto.timingSafeEqual(hashA, hashB)
+}
+
+/**
+ * Middleware that requires HTTP Basic Authentication using credentials
+ * configured in process.env.ADMIN_USERNAME and process.env.ADMIN_PASSWORD.
+ */
+function requireAdminAuth(req, res, next) {
+    // Allow CORS preflight requests without authentication
+    if (req.method === 'OPTIONS') {
+        return next()
+    }
+
+    const adminUser = process.env.ADMIN_USERNAME
+    const adminPass = process.env.ADMIN_PASSWORD
+
+    if (!adminUser || !adminPass) {
+        console.error('ADMIN_USERNAME or ADMIN_PASSWORD environment variables are not configured.')
+        res.setHeader('WWW-Authenticate', 'Basic realm="Greenden Admin"')
+        return res.status(401).json({
+            success: false,
+            error: 'Authentication is not configured on the server.'
+        })
+    }
+
+    const authHeader = req.headers.authorization
+
+    if (!authHeader || !authHeader.startsWith('Basic ')) {
+        res.setHeader('WWW-Authenticate', 'Basic realm="Greenden Admin"')
+        if (req.accepts('html') && !req.path.startsWith('/api')) {
+            return res.status(401).send('Access denied. Authentication required.')
+        }
+        return res.status(401).json({
+            success: false,
+            error: 'Authentication required.'
+        })
+    }
+
+    const base64Credentials = authHeader.slice(6).trim()
+    const decoded = Buffer.from(base64Credentials, 'base64').toString('utf8')
+    const colonIndex = decoded.indexOf(':')
+
+    if (colonIndex === -1) {
+        res.setHeader('WWW-Authenticate', 'Basic realm="Greenden Admin"')
+        return res.status(401).json({
+            success: false,
+            error: 'Invalid authorization header format.'
+        })
+    }
+
+    const user = decoded.slice(0, colonIndex)
+    const pass = decoded.slice(colonIndex + 1)
+
+    if (!safeCompare(user, adminUser) || !safeCompare(pass, adminPass)) {
+        res.setHeader('WWW-Authenticate', 'Basic realm="Greenden Admin"')
+        if (req.accepts('html') && !req.path.startsWith('/api')) {
+            return res.status(401).send('Access denied. Invalid credentials.')
+        }
+        return res.status(401).json({
+            success: false,
+            error: 'Invalid credentials.'
+        })
+    }
+
+    return next()
+}
+
+// ---------------------------------------------------------------------
+// Admin Page (Protected Route & Static File Serving)
+// ---------------------------------------------------------------------
+
+// Authenticated route serving admin.html
+app.get('/admin.html', requireAdminAuth, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'))
+})
+
+// Prevent static file serving from serving admin.html without authentication
+app.use((req, res, next) => {
+    if (req.path.toLowerCase().endsWith('admin.html')) {
+        return requireAdminAuth(req, res, next)
+    }
+    next()
+})
+
+// Serves other public static files from backend/public
+app.use(express.static(path.join(__dirname, 'public'), { index: false }))
 
 // ---------------------------------------------------------------------
 // Helpers
@@ -103,8 +200,8 @@ app.post('/api/contact', (req, res) => {
     }
 })
 
-// Get contact submissions
-app.get('/api/contact', (req, res) => {
+// Get contact submissions (Admin protected)
+app.get('/api/contact', requireAdminAuth, (req, res) => {
     try {
         const rows = db
             .prepare(
@@ -123,8 +220,8 @@ app.get('/api/contact', (req, res) => {
     }
 })
 
-// Delete contact submission
-app.delete('/api/contact/:id', (req, res) => {
+// Delete contact submission (Admin protected)
+app.delete('/api/contact/:id', requireAdminAuth, (req, res) => {
     try {
         const result = db
             .prepare(
@@ -209,8 +306,8 @@ app.post('/api/newsletter', (req, res) => {
     }
 })
 
-// Get newsletter subscribers
-app.get('/api/newsletter', (req, res) => {
+// Get newsletter subscribers (Admin protected)
+app.get('/api/newsletter', requireAdminAuth, (req, res) => {
     try {
         const rows = db
             .prepare(
@@ -229,8 +326,8 @@ app.get('/api/newsletter', (req, res) => {
     }
 })
 
-// Delete newsletter subscriber
-app.delete('/api/newsletter/:id', (req, res) => {
+// Delete newsletter subscriber (Admin protected)
+app.delete('/api/newsletter/:id', requireAdminAuth, (req, res) => {
     try {
         const result = db
             .prepare(
