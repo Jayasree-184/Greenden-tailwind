@@ -1,4 +1,4 @@
-# Greenden — Vanilla JavaScript (no React, no framework, HTML untouched)
+# Greenden
 
 Your three original `.html` files are here **completely unmodified**, except for
 two `<script>` lines added right before `</body>`:
