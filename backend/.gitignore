@@ -1,0 +1,5 @@
+node_modules/
+greenden.db
+greenden.db-shm
+greenden.db-wal
+.env

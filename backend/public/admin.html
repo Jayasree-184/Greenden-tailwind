@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Greenden — Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-green-100 p-4 shadow flex items-center justify-between">
+        <h1 class="text-2xl font-bold">Greenden Admin</h1>
+        <button id="refresh-btn" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">Refresh</button>
+    </nav>
+
+    <main class="max-w-5xl mx-auto p-6 flex flex-col gap-10">
+
+        <section>
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-xl font-bold">Newsletter Subscribers</h2>
+                <span id="newsletter-count" class="text-gray-500 text-sm"></span>
+            </div>
+            <div class="bg-white rounded shadow overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-100 text-sm text-gray-600">
+                        <tr>
+                            <th class="p-3">ID</th>
+                            <th class="p-3">Email</th>
+                            <th class="p-3">Subscribed</th>
+                            <th class="p-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="newsletter-rows"></tbody>
+                </table>
+                <p id="newsletter-empty" class="p-4 text-gray-500 hidden">No subscribers yet.</p>
+            </div>
+        </section>
+
+        <section>
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-xl font-bold">Contact Submissions</h2>
+                <span id="contact-count" class="text-gray-500 text-sm"></span>
+            </div>
+            <div class="bg-white rounded shadow overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-100 text-sm text-gray-600">
+                        <tr>
+                            <th class="p-3">ID</th>
+                            <th class="p-3">Name</th>
+                            <th class="p-3">Email</th>
+                            <th class="p-3">Location</th>
+                            <th class="p-3">Submitted</th>
+                            <th class="p-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="contact-rows"></tbody>
+                </table>
+                <p id="contact-empty" class="p-4 text-gray-500 hidden">No submissions yet.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const API_BASE = window.location.origin
+
+        async function loadNewsletter() {
+            const res = await fetch(`${API_BASE}/api/newsletter`)
+            const rows = await res.json()
+            const tbody = document.getElementById('newsletter-rows')
+            const empty = document.getElementById('newsletter-empty')
+            document.getElementById('newsletter-count').textContent = `${rows.length} total`
+
+            tbody.innerHTML = ''
+            empty.classList.toggle('hidden', rows.length > 0)
+
+            rows.forEach((row) => {
+                const tr = document.createElement('tr')
+                tr.className = 'border-t'
+                tr.innerHTML = `
+                    <td class="p-3 text-gray-400">${row.id}</td>
+                    <td class="p-3">${escapeHtml(row.email)}</td>
+                    <td class="p-3 text-gray-500 text-sm">${row.created_at}</td>
+                    <td class="p-3 text-right">
+                        <button data-delete-newsletter="${row.id}" class="text-red-600 hover:underline text-sm">Delete</button>
+                    </td>
+                `
+                tbody.appendChild(tr)
+            })
+
+            tbody.querySelectorAll('[data-delete-newsletter]').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    await fetch(`${API_BASE}/api/newsletter/${btn.getAttribute('data-delete-newsletter')}`, { method: 'DELETE' })
+                    loadNewsletter()
+                })
+            })
+        }
+
+        async function loadContacts() {
+            const res = await fetch(`${API_BASE}/api/contact`)
+            const rows = await res.json()
+            const tbody = document.getElementById('contact-rows')
+            const empty = document.getElementById('contact-empty')
+            document.getElementById('contact-count').textContent = `${rows.length} total`
+
+            tbody.innerHTML = ''
+            empty.classList.toggle('hidden', rows.length > 0)
+
+            rows.forEach((row) => {
+                const location = [row.city, row.state, row.country].filter(Boolean).join(', ')
+                const tr = document.createElement('tr')
+                tr.className = 'border-t'
+                tr.innerHTML = `
+                    <td class="p-3 text-gray-400">${row.id}</td>
+                    <td class="p-3">${escapeHtml(row.full_name)}</td>
+                    <td class="p-3">${escapeHtml(row.email)}</td>
+                    <td class="p-3 text-gray-500">${escapeHtml(location || '—')}</td>
+                    <td class="p-3 text-gray-500 text-sm">${row.created_at}</td>
+                    <td class="p-3 text-right">
+                        <button data-delete-contact="${row.id}" class="text-red-600 hover:underline text-sm">Delete</button>
+                    </td>
+                `
+                tbody.appendChild(tr)
+            })
+
+            tbody.querySelectorAll('[data-delete-contact]').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    await fetch(`${API_BASE}/api/contact/${btn.getAttribute('data-delete-contact')}`, { method: 'DELETE' })
+                    loadContacts()
+                })
+            })
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div')
+            div.textContent = str ?? ''
+            return div.innerHTML
+        }
+
+        function loadAll() {
+            loadNewsletter()
+            loadContacts()
+        }
+
+        document.getElementById('refresh-btn').addEventListener('click', loadAll)
+        loadAll()
+    </script>
+</body>
+</html>
