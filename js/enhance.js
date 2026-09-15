@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // The backend (greenden-backend/) runs separately, on its own port. Change
 // this if you run it somewhere other than your own machine on port 4000.
 
-const API_BASE = 'http://localhost:4000'
+const API_BASE = 'https://greenden-tailwind.onrender.com'
 
 // --- helpers -----------------------------------------------------------
 
