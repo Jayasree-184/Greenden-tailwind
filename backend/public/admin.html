@@ -3,146 +3,432 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Greenden — Admin</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+
+    <title>Greenden Admin Dashboard</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <nav class="bg-green-100 p-4 shadow flex items-center justify-between">
-        <h1 class="text-2xl font-bold">Greenden Admin</h1>
-        <button id="refresh-btn" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">Refresh</button>
-    </nav>
 
-    <main class="max-w-5xl mx-auto p-6 flex flex-col gap-10">
+<body class="bg-gray-100 text-gray-800">
 
-        <section>
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-xl font-bold">Newsletter Subscribers</h2>
-                <span id="newsletter-count" class="text-gray-500 text-sm"></span>
+    <!-- Header -->
+    <header class="bg-green-700 text-white shadow">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold">Greenden Admin</h1>
+                <p class="text-green-100 text-sm">
+                    Contact & Newsletter Database
+                </p>
             </div>
-            <div class="bg-white rounded shadow overflow-hidden">
+
+            <button
+                onclick="loadData()"
+                class="bg-white text-green-700 px-4 py-2 rounded-lg font-semibold hover:bg-green-50 transition">
+                Refresh
+            </button>
+        </div>
+    </header>
+
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+
+        <!-- Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
+            <div class="bg-white rounded-xl shadow p-6">
+                <p class="text-gray-500 text-sm">Total Contacts</p>
+                <h2 id="contactCount"
+                    class="text-3xl font-bold text-green-700 mt-2">
+                    0
+                </h2>
+            </div>
+
+            <div class="bg-white rounded-xl shadow p-6">
+                <p class="text-gray-500 text-sm">Newsletter Subscribers</p>
+                <h2 id="newsletterCount"
+                    class="text-3xl font-bold text-green-700 mt-2">
+                    0
+                </h2>
+            </div>
+
+        </div>
+
+
+        <!-- Contact Submissions -->
+        <section class="bg-white rounded-xl shadow mb-10 overflow-hidden">
+
+            <div class="px-6 py-5 border-b">
+                <h2 class="text-xl font-bold">
+                    Contact Submissions
+                </h2>
+                <p class="text-sm text-gray-500 mt-1">
+                    Messages submitted through the contact form
+                </p>
+            </div>
+
+            <div class="overflow-x-auto">
+
                 <table class="w-full text-left">
-                    <thead class="bg-gray-100 text-sm text-gray-600">
+
+                    <thead class="bg-gray-50 border-b">
                         <tr>
-                            <th class="p-3">ID</th>
-                            <th class="p-3">Email</th>
-                            <th class="p-3">Subscribed</th>
-                            <th class="p-3"></th>
+                            <th class="px-6 py-4 text-sm font-semibold">ID</th>
+                            <th class="px-6 py-4 text-sm font-semibold">Name</th>
+                            <th class="px-6 py-4 text-sm font-semibold">Email</th>
+                            <th class="px-6 py-4 text-sm font-semibold">Message</th>
+                            <th class="px-6 py-4 text-sm font-semibold">Date</th>
+                            <th class="px-6 py-4 text-sm font-semibold">Action</th>
                         </tr>
                     </thead>
-                    <tbody id="newsletter-rows"></tbody>
+
+                    <tbody id="contactTable">
+                        <tr>
+                            <td colspan="6"
+                                class="px-6 py-8 text-center text-gray-500">
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+
                 </table>
-                <p id="newsletter-empty" class="p-4 text-gray-500 hidden">No subscribers yet.</p>
+
             </div>
         </section>
 
-        <section>
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-xl font-bold">Contact Submissions</h2>
-                <span id="contact-count" class="text-gray-500 text-sm"></span>
+
+        <!-- Newsletter Subscribers -->
+        <section class="bg-white rounded-xl shadow overflow-hidden">
+
+            <div class="px-6 py-5 border-b">
+                <h2 class="text-xl font-bold">
+                    Newsletter Subscribers
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-1">
+                    People subscribed to your newsletter
+                </p>
             </div>
-            <div class="bg-white rounded shadow overflow-hidden">
+
+            <div class="overflow-x-auto">
+
                 <table class="w-full text-left">
-                    <thead class="bg-gray-100 text-sm text-gray-600">
+
+                    <thead class="bg-gray-50 border-b">
                         <tr>
-                            <th class="p-3">ID</th>
-                            <th class="p-3">Name</th>
-                            <th class="p-3">Email</th>
-                            <th class="p-3">Location</th>
-                            <th class="p-3">Submitted</th>
-                            <th class="p-3"></th>
+                            <th class="px-6 py-4 text-sm font-semibold">ID</th>
+                            <th class="px-6 py-4 text-sm font-semibold">Email</th>
+                            <th class="px-6 py-4 text-sm font-semibold">Date</th>
+                            <th class="px-6 py-4 text-sm font-semibold">Action</th>
                         </tr>
                     </thead>
-                    <tbody id="contact-rows"></tbody>
+
+                    <tbody id="newsletterTable">
+                        <tr>
+                            <td colspan="4"
+                                class="px-6 py-8 text-center text-gray-500">
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+
                 </table>
-                <p id="contact-empty" class="p-4 text-gray-500 hidden">No submissions yet.</p>
+
             </div>
         </section>
 
     </main>
 
+
     <script>
-        const API_BASE = window.location.origin
 
-        async function loadNewsletter() {
-            const res = await fetch(`${API_BASE}/api/newsletter`)
-            const rows = await res.json()
-            const tbody = document.getElementById('newsletter-rows')
-            const empty = document.getElementById('newsletter-empty')
-            document.getElementById('newsletter-count').textContent = `${rows.length} total`
+        const API_BASE = 'https://greenden-tailwind.onrender.com';
 
-            tbody.innerHTML = ''
-            empty.classList.toggle('hidden', rows.length > 0)
 
-            rows.forEach((row) => {
-                const tr = document.createElement('tr')
-                tr.className = 'border-t'
-                tr.innerHTML = `
-                    <td class="p-3 text-gray-400">${row.id}</td>
-                    <td class="p-3">${escapeHtml(row.email)}</td>
-                    <td class="p-3 text-gray-500 text-sm">${row.created_at}</td>
-                    <td class="p-3 text-right">
-                        <button data-delete-newsletter="${row.id}" class="text-red-600 hover:underline text-sm">Delete</button>
+        // Escape HTML to prevent database content
+        // from being interpreted as HTML.
+        function escapeHTML(value) {
+
+            if (value === null || value === undefined) {
+                return '';
+            }
+
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+
+        // Load everything
+        async function loadData() {
+
+            try {
+
+                const [contactsResponse, newsletterResponse] =
+                    await Promise.all([
+                        fetch(`${API_BASE}/api/contact`),
+                        fetch(`${API_BASE}/api/newsletter`)
+                    ]);
+
+
+                if (!contactsResponse.ok) {
+                    throw new Error('Could not load contacts');
+                }
+
+                if (!newsletterResponse.ok) {
+                    throw new Error('Could not load newsletter subscribers');
+                }
+
+
+                const contacts = await contactsResponse.json();
+                const subscribers = await newsletterResponse.json();
+
+
+                displayContacts(contacts);
+                displayNewsletter(subscribers);
+
+
+                document.getElementById('contactCount').textContent =
+                    contacts.length;
+
+                document.getElementById('newsletterCount').textContent =
+                    subscribers.length;
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                document.getElementById('contactTable').innerHTML = `
+                    <tr>
+                        <td colspan="6"
+                            class="px-6 py-8 text-center text-red-500">
+                            Failed to load contact records.
+                        </td>
+                    </tr>
+                `;
+
+                document.getElementById('newsletterTable').innerHTML = `
+                    <tr>
+                        <td colspan="4"
+                            class="px-6 py-8 text-center text-red-500">
+                            Failed to load newsletter records.
+                        </td>
+                    </tr>
+                `;
+
+            }
+
+        }
+
+
+        // Display contacts
+        function displayContacts(contacts) {
+
+            const table = document.getElementById('contactTable');
+
+
+            if (!contacts.length) {
+
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="6"
+                            class="px-6 py-8 text-center text-gray-500">
+                            No contact submissions yet.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+
+            table.innerHTML = contacts.map(contact => `
+
+                <tr class="border-b hover:bg-gray-50">
+
+                    <td class="px-6 py-4">
+                        ${escapeHTML(contact.id)}
                     </td>
-                `
-                tbody.appendChild(tr)
-            })
 
-            tbody.querySelectorAll('[data-delete-newsletter]').forEach((btn) => {
-                btn.addEventListener('click', async () => {
-                    await fetch(`${API_BASE}/api/newsletter/${btn.getAttribute('data-delete-newsletter')}`, { method: 'DELETE' })
-                    loadNewsletter()
-                })
-            })
-        }
-
-        async function loadContacts() {
-            const res = await fetch(`${API_BASE}/api/contact`)
-            const rows = await res.json()
-            const tbody = document.getElementById('contact-rows')
-            const empty = document.getElementById('contact-empty')
-            document.getElementById('contact-count').textContent = `${rows.length} total`
-
-            tbody.innerHTML = ''
-            empty.classList.toggle('hidden', rows.length > 0)
-
-            rows.forEach((row) => {
-                const location = [row.city, row.state, row.country].filter(Boolean).join(', ')
-                const tr = document.createElement('tr')
-                tr.className = 'border-t'
-                tr.innerHTML = `
-                    <td class="p-3 text-gray-400">${row.id}</td>
-                    <td class="p-3">${escapeHtml(row.full_name)}</td>
-                    <td class="p-3">${escapeHtml(row.email)}</td>
-                    <td class="p-3 text-gray-500">${escapeHtml(location || '—')}</td>
-                    <td class="p-3 text-gray-500 text-sm">${row.created_at}</td>
-                    <td class="p-3 text-right">
-                        <button data-delete-contact="${row.id}" class="text-red-600 hover:underline text-sm">Delete</button>
+                    <td class="px-6 py-4 font-medium">
+                        ${escapeHTML(contact.name)}
                     </td>
-                `
-                tbody.appendChild(tr)
-            })
 
-            tbody.querySelectorAll('[data-delete-contact]').forEach((btn) => {
-                btn.addEventListener('click', async () => {
-                    await fetch(`${API_BASE}/api/contact/${btn.getAttribute('data-delete-contact')}`, { method: 'DELETE' })
-                    loadContacts()
-                })
-            })
+                    <td class="px-6 py-4">
+                        ${escapeHTML(contact.email)}
+                    </td>
+
+                    <td class="px-6 py-4 max-w-md">
+                        <p class="truncate"
+                           title="${escapeHTML(contact.message)}">
+                            ${escapeHTML(contact.message)}
+                        </p>
+                    </td>
+
+                    <td class="px-6 py-4 text-sm text-gray-500">
+                        ${escapeHTML(
+                            contact.created_at ||
+                            contact.createdAt ||
+                            ''
+                        )}
+                    </td>
+
+                    <td class="px-6 py-4">
+
+                        <button
+                            onclick="deleteContact(${contact.id})"
+                            class="bg-red-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-600">
+                            Delete
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            `).join('');
+
         }
 
-        function escapeHtml(str) {
-            const div = document.createElement('div')
-            div.textContent = str ?? ''
-            return div.innerHTML
+
+        // Display newsletter subscribers
+        function displayNewsletter(subscribers) {
+
+            const table = document.getElementById('newsletterTable');
+
+
+            if (!subscribers.length) {
+
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="4"
+                            class="px-6 py-8 text-center text-gray-500">
+                            No newsletter subscribers yet.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+
+            table.innerHTML = subscribers.map(subscriber => `
+
+                <tr class="border-b hover:bg-gray-50">
+
+                    <td class="px-6 py-4">
+                        ${escapeHTML(subscriber.id)}
+                    </td>
+
+                    <td class="px-6 py-4 font-medium">
+                        ${escapeHTML(subscriber.email)}
+                    </td>
+
+                    <td class="px-6 py-4 text-sm text-gray-500">
+                        ${escapeHTML(
+                            subscriber.created_at ||
+                            subscriber.createdAt ||
+                            ''
+                        )}
+                    </td>
+
+                    <td class="px-6 py-4">
+
+                        <button
+                            onclick="deleteSubscriber(${subscriber.id})"
+                            class="bg-red-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-600">
+                            Delete
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            `).join('');
+
         }
 
-        function loadAll() {
-            loadNewsletter()
-            loadContacts()
+
+        // Delete contact
+        async function deleteContact(id) {
+
+            if (!confirm('Delete this contact submission?')) {
+                return;
+            }
+
+
+            try {
+
+                const response = await fetch(
+                    `${API_BASE}/api/contact/${id}`,
+                    {
+                        method: 'DELETE'
+                    }
+                );
+
+
+                if (!response.ok) {
+                    throw new Error('Delete failed');
+                }
+
+
+                await loadData();
+
+
+            } catch (error) {
+
+                alert('Could not delete contact.');
+
+                console.error(error);
+
+            }
+
         }
 
-        document.getElementById('refresh-btn').addEventListener('click', loadAll)
-        loadAll()
+
+        // Delete newsletter subscriber
+        async function deleteSubscriber(id) {
+
+            if (!confirm('Delete this subscriber?')) {
+                return;
+            }
+
+
+            try {
+
+                const response = await fetch(
+                    `${API_BASE}/api/newsletter/${id}`,
+                    {
+                        method: 'DELETE'
+                    }
+                );
+
+
+                if (!response.ok) {
+                    throw new Error('Delete failed');
+                }
+
+
+                await loadData();
+
+
+            } catch (error) {
+
+                alert('Could not delete subscriber.');
+
+                console.error(error);
+
+            }
+
+        }
+
+
+        // Load data when page opens
+        loadData();
+
     </script>
+
 </body>
 </html>
